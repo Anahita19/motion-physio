@@ -1,25 +1,37 @@
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Streamdown } from 'streamdown';
+import { useState } from "react";
+import { Activity, ArrowDown, ArrowRight, ArrowUpRight, Check, Heart, Menu, MoveUpRight, Sparkles, X } from "lucide-react";
+import BodyMap from "@/components/BodyMap";
+import BookingModal from "@/components/BookingModal";
+import ChatAssistant from "@/components/ChatAssistant";
 
-/**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Workflow, Frontend Best Practices, Design Guide and Common Pitfalls
- */
+const heroImage = "/manus-storage/async-images/v9eBUjzBgqBsY0pJd3XWiS/image-1.webp";
+const recoveryImage = "/manus-storage/async-images/v9eBUjzBgqBsY0pJd3XWiS/image-2.webp";
+
+function Brand({ light = false }: { light?: boolean }) {
+  return <a className={`brand ${light ? "brand-light" : ""}`} href="#top" aria-label="Motion Physio home"><span className="brand-mark"><span></span><span></span><span></span></span><span className="brand-name">motion<span>physio</span><small>PHYSICAL THERAPY</small></span></a>;
+}
+
 export default function Home() {
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
-
-  return (
-    <div className="min-h-screen flex flex-col">
-      <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
-      </main>
-    </div>
-  );
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const book = () => { setMenuOpen(false); setBookingOpen(true); };
+  return <div id="top" className="site">
+    <div className="announcement"><span>GOOD CARE. GOOD MOVEMENT.</span><span>SPORTS INJURIES &nbsp; / &nbsp; POST-SURGERY REHAB</span></div>
+    <header className="header"><div className="header-inner"><Brand /><nav className={menuOpen ? "nav open" : "nav"} aria-label="Main navigation"><a href="#approach" onClick={() => setMenuOpen(false)}>Our approach</a><a href="#areas" onClick={() => setMenuOpen(false)}>Areas we treat</a><a href="#team" onClick={() => setMenuOpen(false)}>Our team</a><a href="#pricing" onClick={() => setMenuOpen(false)}>Pricing</a><button className="nav-mobile-book" onClick={book}>Request a visit <ArrowUpRight size={16} /></button></nav><button className="button button-dark header-cta" onClick={book}>Request a visit <ArrowUpRight size={16} /></button><button className="menu-toggle" aria-label={menuOpen ? "Close navigation" : "Open navigation"} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X /> : <Menu />}</button></div></header>
+    <main>
+      <section className="hero section-wrap">
+        <div className="hero-copy"><span className="eyebrow"><span /> PHYSICAL THERAPY, MADE PERSONAL</span><h1>Move toward<br /><em>what matters.</em></h1><p>Get back to the moments, movements, and activities you love with care that’s centered around you.</p><div className="hero-actions"><button className="button button-dark button-large" onClick={book}>Request an appointment <ArrowUpRight size={17} /></button><a className="hero-link" href="#approach">Discover our approach <ArrowDown size={16} /></a></div><div className="hero-note"><span className="mini-flower">✳</span><div><strong>Care that moves with you.</strong><small>For every step of your recovery.</small></div></div></div>
+        <div className="hero-media"><img src={heroImage} alt="A physical therapist gently guiding a patient through a movement" /><div className="hero-image-overlay"></div><div className="image-badge"><span className="badge-icon"><Activity size={21} /></span><div><small>THOUGHTFUL CARE</small><strong>Made for real life.</strong></div><ArrowUpRight size={18} /></div><span className="hero-side-text">A LITTLE MORE MOVEMENT, EVERY DAY</span></div>
+      </section>
+      <div className="value-strip"><div className="section-wrap values"><div><span>01</span><strong>Care that sees the whole you</strong></div><div><span>02</span><strong>Built around your goals</strong></div><div><span>03</span><strong>Progress at your own pace</strong></div></div></div>
+      <section className="approach-section section-wrap" id="approach"><div className="section-top"><div><span className="eyebrow"><span /> OUR APPROACH</span><h2>A little more you.<br /><em>A little more life.</em></h2></div><div className="section-top-copy"><p>Movement is personal. Your care should be, too. We’re here to help you take the next step with a plan made for your body and your goals.</p><button className="text-link" onClick={book}>Get to know us <ArrowUpRight size={17} /></button></div></div><div className="care-cards"><article><div className="care-icon"><Activity size={23} strokeWidth={1.5} /></div><span className="card-num">01 / MOVE WITH CONFIDENCE</span><h3>Sports injuries</h3><p>Thoughtful support to help you work toward the activities and sports that make you feel like you.</p><a href="#areas" aria-label="Explore sports injury care"><ArrowUpRight size={20} /></a></article><article><div className="care-icon"><Sparkles size={23} strokeWidth={1.5} /></div><span className="card-num">02 / FIND YOUR WAY FORWARD</span><h3>Post-surgery rehab</h3><p>A personalized approach to rehabilitation, with your goals and your next chapter in mind.</p><a href="#areas" aria-label="Explore post-surgery rehabilitation"><ArrowUpRight size={20} /></a></article><article className="care-feature"><div className="care-icon"><Heart size={23} strokeWidth={1.5} /></div><span className="card-num">03 / CARE FOR THE WHOLE YOU</span><h3>Made personal</h3><p>No two journeys look the same. We meet you where you are, and build from there.</p><button onClick={book} aria-label="Request personalized care"><ArrowUpRight size={20} /></button></article></div></section>
+      <BodyMap onBook={book} />
+      <section className="team-section section-wrap" id="team"><div className="section-top"><div><span className="eyebrow"><span /> THE PEOPLE BEHIND YOUR PROGRESS</span><h2>Good care starts<br /><em>with a connection.</em></h2></div><div className="section-top-copy"><p>Three therapists. One shared focus: helping you find your way back to the movement that matters to you.</p><span className="team-note">Individual profiles and credentials coming soon.</span></div></div><div className="team-grid">{[1, 2, 3].map(n => <article className={`therapist therapist-${n}`} key={n}><div className="therapist-art"><div className="portrait-shape"><span className="portrait-head"/><span className="portrait-body"/></div><span className="therapist-number">0{n}</span><span className="portrait-flower">✳</span></div><div className="therapist-info"><div><span className="tiny-label">MOTION PHYSIO TEAM</span><h3>Therapist 0{n}</h3><p>Profile details coming soon</p></div><span className="circle-arrow"><ArrowUpRight size={18}/></span></div></article>)}</div></section>
+      <section className="pricing-section" id="pricing"><div className="section-wrap pricing-inner"><div className="pricing-left"><span className="eyebrow light"><span /> SIMPLE, THOUGHTFUL CARE</span><h2>A clear first step<br /><em>toward feeling better.</em></h2><p>Getting started shouldn’t feel complicated. Here’s what to know before your first visit.</p><button className="button button-light" onClick={book}>Request your first visit <ArrowUpRight size={17} /></button></div><div className="price-card"><span className="tiny-label">YOUR FIRST VISIT</span><div className="price"><span>$</span>120<small> / first visit</small></div><div className="price-line" /><div className="price-detail"><div className="price-check"><Check size={16}/></div><div><h3>Insurance & payment</h3><p>Coverage varies by plan. Please check with your insurer and contact the clinic to confirm current insurance participation and payment details.</p></div></div><div className="price-detail"><div className="price-check"><Check size={16}/></div><div><h3>Follow-up visits</h3><p>Ask the clinic about pricing for any follow-up care.</p></div></div></div></div></section>
+      <section className="stories-section section-wrap" id="stories"><div className="story-image"><img src={recoveryImage} alt="A woman enjoying a walk outdoors"/><div className="story-image-tag">MOVEMENT IS FOR LIVING <MoveUpRight size={18}/></div></div><div className="story-content"><span className="eyebrow"><span /> RECOVERY, REIMAGINED</span><h2>Every recovery<br /><em>has a story.</em></h2><p>There’s no single definition of progress. Sometimes it’s returning to the game. Sometimes it’s simply getting back to the moments you love.</p><div className="story-placeholder"><span className="quote-mark">“</span><div><strong>Real stories, coming soon.</strong><p>We look forward to sharing the voices and experiences of our community here.</p></div></div><button className="text-link" onClick={book}>Start your own story <ArrowUpRight size={17} /></button></div></section>
+      <section className="last-cta"><div className="section-wrap cta-inner"><div><span className="eyebrow light"><span /> YOUR NEXT STEP STARTS HERE</span><h2>Let’s get you moving<br /><em>toward better.</em></h2><p>Whenever you’re ready, we’re here to help.</p></div><button className="button button-light button-large" onClick={book}>Request an appointment <ArrowUpRight size={17}/></button><div className="cta-decoration">✳</div></div></section>
+    </main>
+    <footer><div className="section-wrap footer-inner"><div><Brand /><p>Thoughtful physical therapy for the<br />life you want to move through.</p></div><div><span className="tiny-label">EXPLORE</span><a href="#approach">Our approach</a><a href="#areas">Areas we treat</a><a href="#team">Our team</a><a href="#pricing">Pricing & insurance</a></div><div><span className="tiny-label">GET IN TOUCH</span><button onClick={book}>Request an appointment <ArrowUpRight size={15}/></button><p>Location and contact details<br />coming soon.</p></div></div><div className="section-wrap footer-bottom"><span>© {new Date().getFullYear()} Motion Physio. All rights reserved.</span><span>MADE FOR MOVING FORWARD &nbsp; ✳</span></div></footer>
+    <BookingModal open={bookingOpen} onClose={() => setBookingOpen(false)} /><ChatAssistant onBook={book} />
+  </div>;
 }
