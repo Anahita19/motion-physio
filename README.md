@@ -1,109 +1,183 @@
 # Motion Physio
 
-A warm, responsive website concept for a physical therapy clinic focused on sports injuries and post-surgery rehabilitation. The app combines a 12-region interactive body map, a visitor FAQ assistant, appointment requests, and a clinic-managed internal scheduling calendar.
+**A full-stack physical therapy clinic website and appointment-scheduling demo.** Motion Physio pairs a calm, responsive visitor experience with a clinic-managed calendar built to handle real availability, time zones, and pending appointment requests.
 
-> **Project status:** This repository contains the website source and documentation. A public website/demo has not been deployed. The included screenshots are static previews; see the [demo guide](docs/DEMO.md) for the interactive local walkthrough and current data/authentication prerequisites.
+[![Open the public repository](https://img.shields.io/badge/GitHub-public%20portfolio%20repo-181717?logo=github)](https://github.com/Anahita19/motion-physio)
 
-## Preview
+> **Demo status:** This repository includes the application source, a local run guide, and static screenshots. The website itself is not currently hosted as a live demo. The screenshots are visual previews; use the local setup below to explore the interactive site.
 
-![Motion Physio homepage, desktop layout](docs/assets/demo-desktop.png)
+## Product overview
 
-![Motion Physio homepage, mobile layout](docs/assets/demo-mobile.png)
+The site is designed for a physical therapy clinic focused on sports injuries and post-surgery rehabilitation. Its public experience helps visitors explore care information and request an appointment, while a protected staff calendar manages clinic-published availability.
 
-## What is included
+### Screenshots
 
-- Responsive clinic landing page with a clear first-visit price of **$120**.
-- Interactive body map with 12 selectable regions and general, region-specific care-plan information.
-- Three therapist profile placeholders. Names, individual biographies, and credentials have not been supplied.
-- Pricing and insurance information. The first-visit price is shown; insurance participation and follow-up pricing are not confirmed.
-- Recovery-story area marked as coming soon rather than presenting invented testimonials.
-- A scripted FAQ assistant for common questions. It is informational only, not medical advice, and does not assess emergencies.
-- Appointment requests and a Motion Physio internal calendar. The calendar is not connected to Google Calendar, Outlook, or another external calendar provider.
-- Staff calendar tools for publishing and managing availability, protected by sign-in and an email/admin authorization check.
+![Full-page desktop preview of the Motion Physio homepage](docs/assets/demo-desktop.png)
 
-## Demo
+<details>
+<summary>View the mobile preview</summary>
 
-- **Static visual preview:** the screenshots above and [Demo walkthrough](docs/DEMO.md).
-- **Interactive demo:** run the app locally using the instructions below. Database-backed booking and staff-calendar functions require a configured MySQL database and valid authentication/environment settings.
-- **Live hosted demo:** not currently published. Publishing the website requires a separate hosting decision and authorization; connecting this code to GitHub alone does not deploy it.
+![Full-page mobile preview of the Motion Physio homepage](docs/assets/demo-mobile.png)
 
-The development database currently has no published appointment slots. Visitors can still explore the booking dialog and submit a preferred-time request, but such a request is **not a confirmed appointment**. Staff calendar access also requires an authorized account; see [Internal calendar notes](docs/CALENDAR.md).
+</details>
 
-## Tech stack
+### Visitor experience
 
-- React 19, TypeScript, Vite, and Tailwind CSS
-- Express and tRPC
-- Drizzle ORM with MySQL
-- Vitest for automated tests
-- pnpm 10.18.0 (declared in `package.json`)
+- Responsive landing page with a clear **$120 first-visit price**.
+- Interactive map of **12 body regions**; selecting a region updates the accompanying general care information.
+- Three therapist profile cards, currently labeled as placeholders.
+- Pricing and insurance information that avoids claiming unverified coverage.
+- Recovery-story section marked as coming soon rather than using fabricated testimonials.
+- Scripted FAQ assistant for common questions; it is informational only, not medical advice or emergency support.
+- Appointment dialog for selecting an open time from the internal calendar or requesting a different time.
+
+### Staff experience
+
+- Protected calendar at `/staff/calendar` for managing appointment availability and requests.
+- Staff can publish, edit, confirm, or cancel appointments, subject to each item's current status.
+- Visitors can see only published availability; a reservation remains **pending** until staff confirms it.
+
+## Engineering highlights
+
+- **Race-safe reservations:** slot state is rechecked and reserved in a database transaction, so simultaneous requests cannot silently book the same open slot.
+- **Time-zone-aware scheduling:** each slot carries an IANA time-zone identifier and duration; server-side overlap checks compare actual instants rather than assuming one clinic-wide time zone.
+- **Clear booking states:** open availability, reserved slots, pending requests, confirmations, and cancellations are distinct states.
+- **Server-side validation:** API inputs are validated before database operations, with conflict responses for stale or overlapping availability.
+- **Protected staff operations:** calendar management requires an authenticated admin or an account matching the configured staff email.
+- **Separation of concerns:** React UI, tRPC API procedures, Drizzle data access, and SQL migrations are organized into their respective client, server, and database layers.
+
+## Technology
+
+| Area | Tools |
+| --- | --- |
+| Front end | React 19, TypeScript, Vite, Tailwind CSS |
+| Server/API | Node.js, Express, tRPC |
+| Data | MySQL, Drizzle ORM, checked-in SQL migrations |
+| Validation | Zod |
+| Testing | Vitest |
+| Package manager | pnpm 10.18.0 |
 
 ## Run locally
 
-### Prerequisites
+### Requirements
 
 - Node.js 22 recommended
-- pnpm 10.18.0
-- A dedicated MySQL database for development (do not point local tests at production data)
-- Valid environment settings for the database and, when using sign-in, the configured OAuth/authentication provider
+- pnpm 10.18.0 (the project pins this version in `package.json`)
+- MySQL for database-backed booking and calendar features
+- Valid authentication-provider settings for sign-in and staff calendar access
 
-### Setup
+### 1. Clone and install
 
 ```bash
-git clone <repository-url>
-cd motionphysio
+git clone https://github.com/Anahita19/motion-physio.git
+cd motion-physio
 corepack enable
 corepack prepare pnpm@10.18.0 --activate
 pnpm install --frozen-lockfile
+```
+
+### 2. Configure your local environment
+
+Create a local environment file from the safe template:
+
+```bash
 cp .env.example .env
 ```
 
-Edit `.env` with values for your **own** environment. At minimum, set `DATABASE_URL` to your development MySQL connection string before applying migrations. Authentication and platform API values must come from the relevant provider/deployment; the example file intentionally contains no usable secrets. Set `MOTION_CALENDAR_ADMIN_EMAIL` to the email address of the staff account that should manage the calendar. Keep `.env` private and never commit real credentials.
+Use a **dedicated development database** and edit `.env` with your own values. For a locally running MySQL instance, `DATABASE_URL` follows the form below (create the database and user first, and URL-encode special characters in credentials):
 
-Apply the checked-in migrations, then start the development server:
+```dotenv
+DATABASE_URL=mysql://<username>:<password>@127.0.0.1:3306/<database>
+```
+
+The template lists all supported variables. The following are used for the corresponding capabilities:
+
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | MySQL connection for availability, reservations, appointment requests, and migrations. |
+| `MANUS_PROJECT_ID` | Application identifier used by the configured Manus OAuth integration. |
+| `MANUS_OAUTH_API_URL` | OAuth service endpoint used during sign-in. |
+| `MANUS_JWT_SECRET` | Server-side signing secret for application sessions. |
+| `MOTION_CALENDAR_ADMIN_EMAIL` | Optional staff email allowed to manage the calendar; the account must also sign in. An authenticated admin role is an alternative. |
+| `MANUS_API_URL`, `MANUS_API_KEY` | Server-side credentials for Manus platform APIs used by platform-backed features. Keep these private. |
+
+OAuth and API values must come from an environment you control and are authorized to use; this repository does not include credentials. Never commit `.env` or real keys. `.env.example` contains blank placeholders only.
+
+> **UI-only exploration:** The public homepage can be explored without seeding calendar data. Database-backed availability and booking require a reachable MySQL database. Sign-in and staff-calendar operations additionally require valid OAuth configuration and staff authorization.
+
+### 3. Apply database migrations
+
+Start MySQL and ensure `DATABASE_URL` points to your **development** database, then run:
 
 ```bash
 pnpm db:migrate
+```
+
+This applies the checked-in schema migrations to the selected database. Do not point local development or tests at production or shared clinic data. No appointment slots are seeded automatically.
+
+### 4. Start the app
+
+```bash
 pnpm dev
 ```
 
-Open `http://localhost:3000`. The app expects the server to provide the configured runtime environment. The root page can be explored as a UI demo; live booking and staff management need the database and authentication configuration described above.
+Open [http://localhost:3000](http://localhost:3000). The Express server hosts the Vite development experience and API. With a configured database, visitors can see slots published by staff; because no demo slots are seeded, the initial calendar is empty. A visitor may request another time, but this is not a confirmed appointment.
 
-### Useful commands
+For the staff workflow, configure OAuth and `MOTION_CALENDAR_ADMIN_EMAIL` (or an authenticated admin role), then visit `http://localhost:3000/staff/calendar` and publish test availability in your development database.
+
+## Verification commands
 
 ```bash
-pnpm check       # TypeScript check
-pnpm test        # Automated tests
-pnpm build       # Production build
-pnpm start       # Run the production build
-pnpm db:migrate  # Apply checked-in migrations to DATABASE_URL
+pnpm check       # TypeScript type-check
+pnpm test        # Unit and integration tests
+pnpm build       # Build the client and server
+pnpm start       # Serve the production build
 ```
 
-`pnpm db:push` is intended for schema development and generates migration files; review generated changes before applying them.
+The database commands are:
 
-## Project map
+```bash
+pnpm db:migrate  # Apply checked-in SQL migrations
+pnpm db:push     # Generate and apply schema changes during development
+```
+
+Review generated migration changes before using `pnpm db:push`; do not run schema-changing commands against a production database without an explicit backup and review.
+
+## Architecture at a glance
 
 ```text
-client/                 React application and UI components
-  src/components/       Body map, booking modal, FAQ assistant, shared UI
-  src/pages/            Home page and protected staff calendar page
-server/                 Express/tRPC services and application logic
-  calendar.ts            Internal availability, reservation, and staff actions
-  booking.ts             Appointment request handling
-  db.ts                  MySQL/Drizzle connection
-  _core/                 Runtime, OAuth, and server infrastructure
-drizzle/                 Schema and checked-in SQL migrations
-docs/                    English demo and calendar documentation
+Visitor / Staff
+      │
+      ▼
+React + TypeScript UI
+      │ tRPC
+      ▼
+Express application server
+      │ Drizzle ORM
+      ▼
+MySQL
 ```
 
-## Privacy and content notes
+```text
+client/                  React application and shared UI
+  src/components/        Body map, booking modal, FAQ assistant
+  src/pages/              Home page and staff calendar
+server/                  Express/tRPC application logic
+  calendar.ts             Availability, reservations, and staff operations
+  booking.ts              Appointment request handling
+drizzle/                  Database schema and SQL migrations
+docs/                     Demo walkthrough and calendar guide
+```
 
-- Appointment and calendar records are stored in the configured MySQL database. Use a dedicated development database and follow applicable privacy/security requirements before handling real patient information.
-- Do not collect or include medical history in demo requests. The public form asks for contact details, a service, and a preferred time.
-- Names, credentials, clinic address/hours, insurance participation, follow-up pricing, and genuine recovery stories have not been provided and should be verified before replacing placeholders or making public claims.
-- Body-map content is general educational copy, not diagnosis or medical advice. Post-surgery care should be guided by the patient's clinical team.
+## Scope and responsible-use notes
 
-## Documentation
+This is a **portfolio/demo project**, not a clinic-ready deployment. No real therapist names or credentials, clinic address/hours, insurance participation, follow-up prices, or patient recovery testimonials have been provided. Verify those facts before replacing placeholders or making public clinic claims.
 
-- [Interactive demo walkthrough](docs/DEMO.md)
+The body-map copy is general information, not diagnosis or medical advice. The FAQ assistant is scripted and does not assess emergencies. The internal calendar has no external calendar sync, clinic-wide hours, default time zone, or seeded open slots; staff defines availability per slot. Do not enter real patient data into a demo environment.
+
+## Further documentation
+
+- [Demo walkthrough](docs/DEMO.md)
 - [Internal appointment calendar](docs/CALENDAR.md)
 - [Environment variable template](.env.example)
+- [Public GitHub repository](https://github.com/Anahita19/motion-physio)
