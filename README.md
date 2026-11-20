@@ -1,70 +1,92 @@
 # Motion Physio
 
-**A full-stack physical therapy clinic website and appointment-scheduling demo.** Motion Physio pairs a calm, responsive visitor experience with a clinic-managed calendar built to handle real availability, time zones, and pending appointment requests.
+**A full-stack physical therapy website and appointment-scheduling portfolio project.** Motion Physio combines a warm, responsive visitor experience with a clinic-managed calendar designed around real availability, time zones, and staff-reviewed appointment requests.
 
-[![Open the public repository](https://img.shields.io/badge/GitHub-public%20portfolio%20repo-181717?logo=github)](https://github.com/Anahita19/motion-physio)
+[![Public portfolio repository](https://img.shields.io/badge/GitHub-public%20portfolio%20repo-181717?logo=github)](https://github.com/Anahita19/motion-physio)
 
-> **Demo status:** This repository includes the application source, a local run guide, and static screenshots. The website itself is not currently hosted as a live demo. The screenshots are visual previews; use the local setup below to explore the interactive site.
+> **Demo status:** The repository includes the application source, local setup instructions, and static screenshots. The website is not currently hosted as a live demo. Screenshots are visual captures—not a recording or interactive preview. Run the project locally to explore its interactions.
 
 ## Product overview
 
-The site is designed for a physical therapy clinic focused on sports injuries and post-surgery rehabilitation. Its public experience helps visitors explore care information and request an appointment, while a protected staff calendar manages clinic-published availability.
+The project presents a concept website for a physical therapy clinic focused on sports injuries and post-surgery rehabilitation. Visitors can explore care information and request an appointment; authorized staff can manage availability and review appointment requests in an internal calendar.
 
-### Screenshots
+### Visual tour
 
-![Full-page desktop preview of the Motion Physio homepage](docs/assets/demo-desktop.png)
+**Desktop experience**
+
+![Motion Physio desktop hero: responsive navigation, core promise, treatment imagery, and appointment actions](docs/assets/demo-hero-desktop.png)
 
 <details>
-<summary>View the mobile preview</summary>
+<summary>View the mobile experience</summary>
 
-![Full-page mobile preview of the Motion Physio homepage](docs/assets/demo-mobile.png)
+![Motion Physio mobile hero at a 390-pixel viewport](docs/assets/demo-hero-mobile.png)
 
 </details>
 
+**Interactive body-map example — Shoulder selected**
+
+![Static capture of the live body-map interface after selecting Shoulder; the care panel updates to shoulder-focused information](docs/assets/body-map-shoulder.png)
+
+The shoulder image is a static screenshot of an actual interactive selection. It illustrates the interface state; it is not an animation or hosted demo.
+
+<details>
+<summary>View full-page desktop and mobile captures</summary>
+
+![Full-page desktop capture of the Motion Physio homepage](docs/assets/demo-desktop.png)
+
+![Full-page mobile capture of the Motion Physio homepage](docs/assets/demo-mobile.png)
+
+</details>
+
+For the walkthrough and demo boundaries, see [docs/DEMO.md](docs/DEMO.md).
+
+## Product features
+
 ### Visitor experience
 
-- Responsive landing page with a clear **$120 first-visit price**.
-- Interactive map of **12 body regions**; selecting a region updates the accompanying general care information.
-- Three therapist profile cards, currently labeled as placeholders.
-- Pricing and insurance information that avoids claiming unverified coverage.
-- Recovery-story section marked as coming soon rather than using fabricated testimonials.
-- Scripted FAQ assistant for common questions; it is informational only, not medical advice or emergency support.
-- Appointment dialog for selecting an open time from the internal calendar or requesting a different time.
+- Responsive landing page with a clear **$120 first-visit price** and appointment-request entry points.
+- Interactive, accessible body map covering **12 regions**; selecting a hotspot or region button updates the associated general information and possible plan elements.
+- Therapist profile cards presented as placeholders—not verified people or credentials.
+- Pricing and insurance content that avoids claiming unverified coverage.
+- Recovery-story section marked as coming soon rather than populated with invented testimonials.
+- Scripted FAQ assistant for common questions; it is not generative AI, medical advice, or emergency support.
+- Appointment flow for selecting a published opening or requesting a different preferred time.
 
-### Staff experience
+### Staff and scheduling
 
-- Protected calendar at `/staff/calendar` for managing appointment availability and requests.
-- Staff can publish, edit, confirm, or cancel appointments, subject to each item's current status.
-- Visitors can see only published availability; a reservation remains **pending** until staff confirms it.
+- Protected staff calendar at `/staff/calendar` for managing availability and appointment requests.
+- Authorized staff can publish or edit open slots, confirm pending requests, and cancel reserved or confirmed appointments.
+- Public availability exposes only open slots; a visitor's reservation is **pending** until staff confirmation.
+- Each slot stores its date, local start time, IANA time zone, therapist placeholder, duration, and status. The product does not assume clinic-wide hours or a default time zone.
 
 ## Engineering highlights
 
-- **Race-safe reservations:** slot state is rechecked and reserved in a database transaction, so simultaneous requests cannot silently book the same open slot.
-- **Time-zone-aware scheduling:** each slot carries an IANA time-zone identifier and duration; server-side overlap checks compare actual instants rather than assuming one clinic-wide time zone.
-- **Clear booking states:** open availability, reserved slots, pending requests, confirmations, and cancellations are distinct states.
-- **Server-side validation:** API inputs are validated before database operations, with conflict responses for stale or overlapping availability.
-- **Protected staff operations:** calendar management requires an authenticated admin or an account matching the configured staff email.
-- **Separation of concerns:** React UI, tRPC API procedures, Drizzle data access, and SQL migrations are organized into their respective client, server, and database layers.
+- **Transactional reservation flow:** the server locks and rechecks a selected slot inside a database transaction before creating a pending request. Stale or already-reserved slots return a conflict instead of being silently double-booked.
+- **Time-zone-aware scheduling:** server logic validates IANA zone identifiers, converts local slot times into instants, rejects nonexistent local times, and checks overlapping durations across time zones for the same therapist.
+- **Explicit state transitions:** availability, reservation, confirmation, and cancellation are distinct states, with staff actions guarded by the current state.
+- **Validated API boundaries:** tRPC procedures apply Zod input schemas and server-side authorization before database operations; dates, times, durations, and appointment fields are checked on the server.
+- **Protected staff access:** calendar mutations require authentication plus either an admin role or a match to the configured staff email.
+- **Layered full-stack structure:** React UI, Express/tRPC procedures, Drizzle data access, MySQL schema, and checked-in SQL migrations have separate responsibilities.
+- **Automated checks:** the repository provides TypeScript checking, Vitest tests, and a production build command (`pnpm check`, `pnpm test`, and `pnpm build`).
 
 ## Technology
 
-| Area | Tools |
+| Layer | Technologies and role |
 | --- | --- |
-| Front end | React 19, TypeScript, Vite, Tailwind CSS |
-| Server/API | Node.js, Express, tRPC |
-| Data | MySQL, Drizzle ORM, checked-in SQL migrations |
-| Validation | Zod |
-| Testing | Vitest |
-| Package manager | pnpm 10.18.0 |
+| UI | React 19, TypeScript, Vite, Tailwind CSS 4, and Lucide icons for the responsive application and interactive components. |
+| Forms and API state | React Hook Form and Zod for form/input validation; tRPC React and TanStack Query for typed API calls and server-state handling. |
+| Application server | Node.js, Express, and tRPC for HTTP serving and typed procedures shared with the client. |
+| Persistence | MySQL with Drizzle ORM, explicit schema definitions, and checked-in SQL migrations. |
+| Quality and delivery | TypeScript 5.9, Vitest, esbuild, and pnpm 10.18.0. |
 
 ## Run locally
 
 ### Requirements
 
 - Node.js 22 recommended
-- pnpm 10.18.0 (the project pins this version in `package.json`)
-- MySQL for database-backed booking and calendar features
-- Valid authentication-provider settings for sign-in and staff calendar access
+- pnpm 10.18.0 (pinned by the project)
+- MySQL for database-backed availability, booking, and staff-calendar features
+- Valid authentication-provider settings for sign-in and staff-calendar access
 
 ### 1. Clone and install
 
@@ -90,7 +112,7 @@ Use a **dedicated development database** and edit `.env` with your own values. F
 DATABASE_URL=mysql://<username>:<password>@127.0.0.1:3306/<database>
 ```
 
-The template lists all supported variables. The following are used for the corresponding capabilities:
+The template lists all supported variables. These are used for the corresponding capabilities:
 
 | Variable | Purpose |
 | --- | --- |
@@ -121,7 +143,7 @@ This applies the checked-in schema migrations to the selected database. Do not p
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The Express server hosts the Vite development experience and API. With a configured database, visitors can see slots published by staff; because no demo slots are seeded, the initial calendar is empty. A visitor may request another time, but this is not a confirmed appointment.
+Open [http://localhost:3000](http://localhost:3000). The Express server hosts the Vite development experience and API. With a configured database, visitors can see slots published by staff; because no demo slots are seeded, the initial calendar is empty. A visitor may request another time, but that is a request—not a confirmed appointment.
 
 For the staff workflow, configure OAuth and `MOTION_CALENDAR_ADMIN_EMAIL` (or an authenticated admin role), then visit `http://localhost:3000/staff/calendar` and publish test availability in your development database.
 
@@ -150,7 +172,7 @@ Visitor / Staff
       │
       ▼
 React + TypeScript UI
-      │ tRPC
+      │ typed tRPC calls
       ▼
 Express application server
       │ Drizzle ORM
@@ -171,13 +193,13 @@ docs/                     Demo walkthrough and calendar guide
 
 ## Scope and responsible-use notes
 
-This is a **portfolio/demo project**, not a clinic-ready deployment. No real therapist names or credentials, clinic address/hours, insurance participation, follow-up prices, or patient recovery testimonials have been provided. Verify those facts before replacing placeholders or making public clinic claims.
+This is a **portfolio/demo project**, not a clinic-ready deployment. No real therapist names or credentials, clinic address or hours, insurance participation, follow-up prices, or patient recovery testimonials have been provided. Verify those facts before replacing placeholders or making public clinic claims.
 
 The body-map copy is general information, not diagnosis or medical advice. The FAQ assistant is scripted and does not assess emergencies. The internal calendar has no external calendar sync, clinic-wide hours, default time zone, or seeded open slots; staff defines availability per slot. Do not enter real patient data into a demo environment.
 
 ## Further documentation
 
-- [Demo walkthrough](docs/DEMO.md)
+- [Demo walkthrough and screenshot guide](docs/DEMO.md)
 - [Internal appointment calendar](docs/CALENDAR.md)
 - [Environment variable template](.env.example)
 - [Public GitHub repository](https://github.com/Anahita19/motion-physio)
