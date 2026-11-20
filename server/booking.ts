@@ -53,6 +53,8 @@ export const bookingRouter = router({
       therapist: input.therapist,
       date: input.date,
       time: input.time,
+      status: "pending",
+      slotId: null,
     });
 
     const notificationContent = [

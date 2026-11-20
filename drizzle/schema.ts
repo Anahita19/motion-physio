@@ -6,12 +6,7 @@ import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-or
  * Columns use camelCase to match both database fields and generated types.
  */
 export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
   id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
@@ -20,6 +15,17 @@ export const users = mysqlTable("users", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
+});
+
+export const calendarSlots = mysqlTable("calendar_slots", {
+  id: int("id").autoincrement().primaryKey(),
+  date: varchar("date", { length: 10 }).notNull(),
+  startTime: varchar("startTime", { length: 5 }).notNull(),
+  timezone: varchar("timezone", { length: 64 }).notNull(),
+  therapist: varchar("therapist", { length: 40 }).notNull(),
+  durationMinutes: int("durationMinutes").notNull(),
+  status: mysqlEnum("status", ["available", "reserved", "confirmed", "cancelled"]).default("available").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export const appointmentRequests = mysqlTable("appointment_requests", {
@@ -31,10 +37,12 @@ export const appointmentRequests = mysqlTable("appointment_requests", {
   therapist: varchar("therapist", { length: 40 }).notNull(),
   date: varchar("date", { length: 10 }).notNull(),
   time: varchar("time", { length: 5 }).notNull(),
+  status: mysqlEnum("status", ["pending", "confirmed", "cancelled"]).default("pending").notNull(),
+  slotId: int("slotId"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
-
-// TODO: Add your tables here
+export type CalendarSlot = typeof calendarSlots.$inferSelect;
+export type AppointmentRequest = typeof appointmentRequests.$inferSelect;

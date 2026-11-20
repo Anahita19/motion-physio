@@ -15,6 +15,13 @@
       "when": 1795085813247,
       "tag": "0001_nappy_vertigo",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1795154847283,
+      "tag": "0002_gorgeous_garia",
+      "breakpoints": true
     }
   ]
 }
